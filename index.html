@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ARスタンプラリー</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+
+  <!-- MindAR -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.4/dist/mindar-image-aframe.prod.js"></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+
+    #ui {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 16px;
+      z-index: 999;
+    }
+
+    #complete {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: gold;
+      color: black;
+      padding: 20px 30px;
+      font-size: 22px;
+      border-radius: 12px;
+      display: none;
+      z-index: 1000;
+    }
+
+    #resetBtn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
+      z-index: 999;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- UI -->
+<div id="ui">スタンプ 0 / 6</div>
+<div id="complete">🎉 コンプリート！景品ゲット！</div>
+<button id="resetBtn">リセット</button>
+
+<a-scene
+  mindar-image="imageTargetSrc: ./targets.mind"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: true"
+  renderer="colorManagement: true; antialias: true">
+
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+  <!-- ===== 6キャラ ===== -->
+
+  <a-entity mindar-image-target="targetIndex: 0">
+    <a-gltf-model src="./char1.glb" scale="0.3 0.3 0.3"></a-gltf-model>
+  </a-entity>
+
+  <a-entity mindar-image-target="targetIndex: 1">
+    <a-gltf-model src="./char2.glb" scale="0.3 0.3 0.3"></a-gltf-model>
+  </a-entity>
+
+  <a-entity mindar-image-target="targetIndex: 2">
+    <a-gltf-model src="./char3.glb" scale="0.3 0.3 0.3"></a-gltf-model>
+  </a-entity>
+
+  <a-entity mindar-image-target="targetIndex: 3">
+    <a-gltf-model src="./char4.glb" scale="0.3 0.3 0.3"></a-gltf-model>
+  </a-entity>
+
+  <a-entity mindar-image-target="targetIndex: 4">
+    <a-gltf-model src="./char5.glb" scale="0.3 0.3 0.3"></a-gltf-model>
+  </a-entity>
+
+  <a-entity mindar-image-target="targetIndex: 5">
+    <a-gltf-model src="./char6.glb" scale="0.3 0.3 0.3"></a-gltf-model>
+  </a-entity>
+
+</a-scene>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const TOTAL = 6;
+
+  // スタンプ状態
+  let stamps = JSON.parse(localStorage.getItem("stamps")) 
+    || Array(TOTAL).fill(false);
+
+  const ui = document.getElementById("ui");
+  const complete = document.getElementById("complete");
+
+  function updateUI() {
+    const count = stamps.filter(v => v).length;
+    ui.innerText = `スタンプ ${count} / ${TOTAL}`;
+  }
+
+  function checkComplete() {
+    if (stamps.every(v => v)) {
+      complete.style.display = "block";
+    }
+  }
+
+  updateUI();
+  checkComplete();
+
+  // マーカー取得イベント
+  const targets = document.querySelectorAll('[mindar-image-target]');
+
+  targets.forEach((target, index) => {
+
+    target.addEventListener("targetFound", () => {
+
+      if (!stamps[index]) {
+        stamps[index] = true;
+        localStorage.setItem("stamps", JSON.stringify(stamps));
+
+        updateUI();
+
+        // 軽い演出
+        alert(`スタンプ ${index + 1} GET！`);
+      }
+
+      checkComplete();
+    });
+
+  });
+
+  // リセットボタン
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("リセットしますか？")) {
+      localStorage.removeItem("stamps");
+      location.reload();
+    }
+  });
+
+});
+</script>
+
+</body>
+</html>
